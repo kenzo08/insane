@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {debounce} from 'lodash';
-import {watch} from 'vue';
+import {watch, ref, onMounted} from 'vue';
 
 
 interface Props {
@@ -13,9 +13,10 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits(['update:modelValue']);
 
+const inputRef = ref<HTMLInputElement | null>(null);
 
-const handleInput = debounce((event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
+const handleInput = debounce(() => {
+  const value = inputRef.value?.value || '';
   emit('update:modelValue', value)
   if (validate) {
     validate(value);
@@ -37,6 +38,12 @@ watch(
       searchTerm = newValue as string;
     }
 );
+
+onMounted(() => {
+  if (inputRef.value) {
+    inputRef.value.value = props.modelValue || '';
+  }
+});
 </script>
 
 <template>
@@ -46,6 +53,7 @@ watch(
       :class="{'input--error': error}"
       :debounce="debounceDelay"
       @input="handleInput"
+      ref="inputRef"
   />
 </template>
 

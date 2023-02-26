@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import {computed, defineAsyncComponent, onMounted, ref} from "vue";
 import ContactCard from "@/components/ContactCard.vue";
 import InputBase from "@/components/atom/InputBase.vue";
 import {Contact} from "@/types/general"
 import {getContact} from "@/services/contactServices";
+import BtnBase from "@/components/atom/BtnBase.vue";
 
-
+const ModalBase = defineAsyncComponent(() => import('@/components/atom/ModalBase.vue'));
 const contacts = ref<Contact[]>([]);
+const editId = ref<number>(0);
+const editFio = ref('');
+const editEmail = ref('');
+const editPhone = ref('');
 const searchKey = ref('');
+const isShowModal = ref(false);
 
 const filteredContacts = computed(() => {
   if (!searchKey.value) {
@@ -24,8 +30,31 @@ const filteredContacts = computed(() => {
     });
   }
 });
+
+const deleteContact = (id: number) => {
+  return contacts.value = filteredContacts.value.filter(contact => contact.id !== id);
+}
+
+const editContact = (id: number, type?: 'getContact') => {
+  isShowModal.value = true;
+  filteredContacts.value.forEach(contact => {
+    if (contact.id === id) {
+      if (type === 'getContact') {
+        editId.value = contact.id;
+        editFio.value = contact?.fio;
+        editEmail.value = contact?.email;
+        editPhone.value = contact?.phone;
+      } else {
+        contact.fio = editFio.value;
+        contact.email = editEmail.value;
+        contact.phone = editPhone.value;
+        isShowModal.value = false
+      }
+    }
+  });
+}
 onMounted(async () => {
-  contacts.value =  await getContact();
+  contacts.value = await getContact();
 })
 </script>
 
@@ -33,35 +62,42 @@ onMounted(async () => {
   <div :class="$style['contact_list']">
     <h1>Контакты</h1>
     <InputBase
-        v-model.trim="searchKey"
-        placeholder="Введите поиск..."
+        v-model="searchKey"
+        placeholder="Поиск..."
         :debounceDelay="400"
     />
     <ul v-show="filteredContacts.length">
       <li v-for="contact in filteredContacts" :key="contact.id">
-        <router-link :to="{name: 'ContactPage', params: {id: contact.id}}" :class="$style['router_link']">
-          <ContactCard
-              :fio="contact.fio"
-              :phone="contact.phone"
-              :email="contact.email"
-              :tags="contact.tags"
-          />
-        </router-link>
+        <ContactCard
+            :id="contact.id"
+            :fio="contact.fio"
+            :phone="contact.phone"
+            :email="contact.email"
+            :tags="contact.tags"
+            @edit="editContact(contact.id, 'getContact')"
+            @delete="deleteContact"
+        />
       </li>
     </ul>
     <span v-show="!filteredContacts.length" :class="$style['empty_result']">
       Ничего не найдено
     </span>
+    <ModalBase v-if="isShowModal" title="Редактировать контакт" @close="isShowModal=false">
+      <div :class="$style.modal">
+        <InputBase v-model="editFio" placeholder="ФИО"/>
+        <InputBase v-model="editPhone" placeholder="Телефон"/>
+        <InputBase v-model="editEmail" placeholder="Электронная почта"/>
+      </div>
+      <template #footer>
+        <BtnBase size="small" @click="editContact(editId)">
+          Редактировать
+        </BtnBase>
+      </template>
+    </ModalBase>
   </div>
 </template>
 
 <style module>
-.router_link {
-  text-decoration: none;
-  color: inherit;
-  outline: none;
-}
-
 .contact_list {
   display: flex;
   flex-direction: column;
@@ -154,4 +190,10 @@ onMounted(async () => {
   }
 }
 
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 </style>
