@@ -3,20 +3,11 @@ import {onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {getContact} from "@/services/contactServices";
 import {Contact} from "@/types/general";
-import BtnBase from "@/components/atom/BtnBase.vue";
 
 
 const route = useRoute();
 const contactId = ref(Number(route.params.id));
 const contact = ref<Contact>()
-
-const editContact = () => {
-  console.log('edit')
-}
-
-const deleteContact = () => {
-  console.log('delete')
-}
 
 onMounted(async () => {
   contact.value = await getContact(contactId.value)
@@ -25,8 +16,9 @@ onMounted(async () => {
 
 <template>
   <div :class="$style.container">
-    <h1>{{ contact?.fio }}</h1>
+    <router-link to="/" :class="$style['link_main_page']">Назад</router-link>
     <div :class="$style['contact_details']">
+      <h1>{{ contact?.fio }}</h1>
       <div :class="$style['contact_info']">
         <div :class="$style['contact_tem']">
           <label>Телефон:</label>
@@ -46,32 +38,31 @@ onMounted(async () => {
         </div>
       </div>
     </div>
-    <nav :class="$style['nav_bar']">
-      <BtnBase @click="editContact">Редактировать</BtnBase>
-      <BtnBase @click="deleteContact">Удалить</BtnBase>
-    </nav>
   </div>
 </template>
 
 <style module>
+.link_main_page {
+  margin-top: 60px;
+  text-decoration: none;
+  padding: 10px;
+  height: 100%;
+  color: inherit;
+  outline: none;
+}
+
 .container {
   max-width: 350px;
   margin: auto;
   display: flex;
-  flex-direction: column;
+  gap: 20px;
 }
 
 .contact_details {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   margin-top: 20px;
-}
-
-.nav_bar {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  gap: 12px;
 }
 
 .contact_info {
@@ -94,11 +85,11 @@ onMounted(async () => {
 .contact_tags {
   display: flex;
   flex-direction: column;
+  margin-top: 20px;
 }
 
 .tag_list {
   display: flex;
-  flex-direction: column;
   margin-top: 5px;
 }
 
@@ -116,11 +107,6 @@ onMounted(async () => {
 @media screen and (max-width: 768px) {
   .container {
     padding: 0 16px;
-  }
-
-  .nav_bar {
-    margin-top: 16px;
-    flex-direction: column;
   }
 
   .contact_details {

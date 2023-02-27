@@ -12,6 +12,8 @@ const editId = ref<number>(0);
 const editFio = ref('');
 const editEmail = ref('');
 const editPhone = ref('');
+const editTags = ref<string[]>([]);
+const newTag = ref('');
 const searchKey = ref('');
 const isShowModal = ref(false);
 
@@ -44,14 +46,25 @@ const editContact = (id: number, type?: 'getContact') => {
         editFio.value = contact?.fio;
         editEmail.value = contact?.email;
         editPhone.value = contact?.phone;
+        editTags.value = contact?.tags
       } else {
         contact.fio = editFio.value;
         contact.email = editEmail.value;
         contact.phone = editPhone.value;
+        contact.tags = editTags.value
         isShowModal.value = false
       }
     }
   });
+}
+
+const addNewTag = () => {
+  editTags.value.push(newTag.value);
+  newTag.value = '';
+}
+
+const deleteTags = (tag: string) => {
+  editTags.value = editTags.value.filter(item => item != tag)
 }
 onMounted(async () => {
   contacts.value = await getContact();
@@ -82,11 +95,31 @@ onMounted(async () => {
     <span v-show="!filteredContacts.length" :class="$style['empty_result']">
       Ничего не найдено
     </span>
-    <ModalBase v-if="isShowModal" title="Редактировать контакт" @close="isShowModal=false">
+    <ModalBase
+        v-if="isShowModal"
+        title="Редактировать контакт"
+        @close="isShowModal=false"
+    >
       <div :class="$style.modal">
         <InputBase v-model="editFio" placeholder="ФИО"/>
         <InputBase v-model="editPhone" placeholder="Телефон"/>
         <InputBase v-model="editEmail" placeholder="Электронная почта"/>
+        <InputBase v-model="newTag" placeholder="Добавить тег"/>
+        <BtnBase
+            :disabled="!newTag.length"
+            size="small"
+            @click="addNewTag"
+        >
+          Добавить тег
+        </BtnBase>
+        <div :class="$style['tag_list']">
+            <span v-for="tag in editTags" :class="$style.tag">
+              {{ tag }}
+              <span :class="$style['delete_tag']" @click="deleteTags(tag)">
+                x
+              </span>
+            </span>
+        </div>
       </div>
       <template #footer>
         <BtnBase size="small" @click="editContact(editId)">
@@ -98,6 +131,27 @@ onMounted(async () => {
 </template>
 
 <style module>
+.tag_list {
+  display: flex;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.delete_tag {
+  font-size: 15px;
+  padding: 4px;
+  color: #ffffff;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: #ccc;
+  padding: 4px;
+  border-radius: 10px;
+}
+
 .contact_list {
   display: flex;
   flex-direction: column;
