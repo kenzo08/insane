@@ -228,5 +228,4 @@ defineProps<Props>();
     box-shadow: none;
   }
 }
-
 </style>
