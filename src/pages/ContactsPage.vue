@@ -6,6 +6,7 @@ import {Contact} from "@/types/general"
 import {getContact} from "@/services/contactServices";
 import BtnBase from "@/components/atom/BtnBase.vue";
 
+
 const ModalBase = defineAsyncComponent(() => import('@/components/atom/ModalBase.vue'));
 const contacts = ref<Contact[]>([]);
 const editId = ref<number>(0);
